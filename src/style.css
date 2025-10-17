@@ -1,5 +1,14 @@
-.icon {
-  width: 64px;
-  vertical-align: top;
-  border: 1px solid salmon;
+canvas {
+  border: 1px solid #000;
+  border-radius: 10px;
+  filter: drop-shadow(0 4px 12px rgba(0,0,0,0.2));
+  image-rendering: pixelated;
+}
+
+body {
+  font-family: system-ui, sans-serif;
+  display: grid;
+  place-items: start;
+  gap: 12px;
+  padding: 16px;
 }
