@@ -5,7 +5,6 @@ document.body.append(canvas);
 
 const ctx = canvas.getContext("2d") as CanvasRenderingContext2D;
 
-// 👇 add type annotations so TS knows what these are
 type Point = { x: number; y: number };
 const lines: Point[][] = [];
 const redoLines: Point[][] = [];
@@ -24,7 +23,7 @@ canvas.addEventListener("mousedown", (e) => {
   redoLines.splice(0, redoLines.length);
   currentLine.push({ x: cursor.x, y: cursor.y });
 
-  redraw();
+  canvas.dispatchEvent(new Event("drawing-changed"));
 });
 
 canvas.addEventListener("mousemove", (e) => {
@@ -33,7 +32,7 @@ canvas.addEventListener("mousemove", (e) => {
     cursor.y = e.offsetY;
     currentLine.push({ x: cursor.x, y: cursor.y });
 
-    redraw();
+    canvas.dispatchEvent(new Event("drawing-changed"));
   }
 });
 
@@ -41,7 +40,7 @@ canvas.addEventListener("mouseup", () => {
   cursor.active = false;
   currentLine = null;
 
-  redraw();
+  canvas.dispatchEvent(new Event("drawing-changed"));
 });
 
 function redraw() {
@@ -59,6 +58,10 @@ function redraw() {
   }
 }
 
+canvas.addEventListener("drawing-changed", () => {
+  redraw();
+});
+
 document.body.append(document.createElement("br"));
 
 const clearButton = document.createElement("button");
@@ -67,5 +70,5 @@ document.body.append(clearButton);
 
 clearButton.addEventListener("click", () => {
   lines.splice(0, lines.length);
-  redraw();
+  canvas.dispatchEvent(new Event("drawing-changed"));
 });
