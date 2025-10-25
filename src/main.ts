@@ -28,9 +28,30 @@ class MarkerLine implements DisplayCommand {
     if (this.points.length < 2) return;
     ctx.beginPath();
     ctx.lineWidth = this.thickness;
+    ctx.strokeStyle = "black";
     const { x, y } = this.points[0];
     ctx.moveTo(x, y);
     for (const p of this.points) ctx.lineTo(p.x, p.y);
+    ctx.stroke();
+  }
+}
+
+class ToolPreview implements DisplayCommand {
+  x: number;
+  y: number;
+  thickness: number;
+
+  constructor(x: number, y: number, thickness: number) {
+    this.x = x;
+    this.y = y;
+    this.thickness = thickness;
+  }
+
+  display(ctx: CanvasRenderingContext2D) {
+    ctx.beginPath();
+    ctx.lineWidth = 1;
+    ctx.strokeStyle = "rgba(0,0,0,0.5)";
+    ctx.arc(this.x, this.y, this.thickness / 2, 0, Math.PI * 2);
     ctx.stroke();
   }
 }
@@ -39,6 +60,7 @@ const lines: DisplayCommand[] = [];
 const redoLines: DisplayCommand[] = [];
 
 let currentLine: MarkerLine | null = null;
+let preview: ToolPreview | null = null;
 const cursor = { active: false, x: 0, y: 0 };
 let currentThickness = 1;
 
@@ -77,11 +99,15 @@ canvas.addEventListener("mousedown", (e) => {
 });
 
 canvas.addEventListener("mousemove", (e) => {
+  cursor.x = e.offsetX;
+  cursor.y = e.offsetY;
+
   if (cursor.active && currentLine) {
-    cursor.x = e.offsetX;
-    cursor.y = e.offsetY;
     currentLine.drag(cursor.x, cursor.y);
     canvas.dispatchEvent(new Event("drawing-changed"));
+  } else {
+    preview = new ToolPreview(cursor.x, cursor.y, currentThickness);
+    canvas.dispatchEvent(new Event("tool-moved"));
   }
 });
 
@@ -94,9 +120,15 @@ canvas.addEventListener("mouseup", () => {
 function redraw() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   for (const cmd of lines) cmd.display(ctx);
+
+  if (!cursor.active && preview) preview.display(ctx);
 }
 
 canvas.addEventListener("drawing-changed", () => {
+  redraw();
+});
+
+canvas.addEventListener("tool-moved", () => {
   redraw();
 });
 
