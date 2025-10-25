@@ -41,7 +41,7 @@ class ToolPreview implements DisplayCommand {
   y: number;
   size: number;
   mode: "marker" | "sticker";
-  sticker?: string;
+  sticker?: string | undefined;
 
   constructor(
     x: number,
