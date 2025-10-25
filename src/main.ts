@@ -13,9 +13,11 @@ interface DisplayCommand {
 
 class MarkerLine implements DisplayCommand {
   points: Point[];
+  thickness: number;
 
-  constructor(start: Point) {
+  constructor(start: Point, thickness: number) {
     this.points = [start];
+    this.thickness = thickness;
   }
 
   drag(x: number, y: number) {
@@ -25,11 +27,10 @@ class MarkerLine implements DisplayCommand {
   display(ctx: CanvasRenderingContext2D) {
     if (this.points.length < 2) return;
     ctx.beginPath();
+    ctx.lineWidth = this.thickness;
     const { x, y } = this.points[0];
     ctx.moveTo(x, y);
-    for (const p of this.points) {
-      ctx.lineTo(p.x, p.y);
-    }
+    for (const p of this.points) ctx.lineTo(p.x, p.y);
     ctx.stroke();
   }
 }
@@ -39,13 +40,36 @@ const redoLines: DisplayCommand[] = [];
 
 let currentLine: MarkerLine | null = null;
 const cursor = { active: false, x: 0, y: 0 };
+let currentThickness = 1;
+
+document.body.append(document.createElement("br"));
+
+const thinButton = document.createElement("button");
+thinButton.textContent = "Thin Marker";
+document.body.append(thinButton);
+
+const thickButton = document.createElement("button");
+thickButton.textContent = "Thick Marker";
+document.body.append(thickButton);
+
+thinButton.addEventListener("click", () => {
+  currentThickness = 1;
+  thinButton.classList.add("selectedTool");
+  thickButton.classList.remove("selectedTool");
+});
+
+thickButton.addEventListener("click", () => {
+  currentThickness = 5;
+  thickButton.classList.add("selectedTool");
+  thinButton.classList.remove("selectedTool");
+});
 
 canvas.addEventListener("mousedown", (e) => {
   cursor.active = true;
   cursor.x = e.offsetX;
   cursor.y = e.offsetY;
 
-  currentLine = new MarkerLine({ x: cursor.x, y: cursor.y });
+  currentLine = new MarkerLine({ x: cursor.x, y: cursor.y }, currentThickness);
   lines.push(currentLine);
   redoLines.splice(0, redoLines.length);
 
@@ -57,7 +81,6 @@ canvas.addEventListener("mousemove", (e) => {
     cursor.x = e.offsetX;
     cursor.y = e.offsetY;
     currentLine.drag(cursor.x, cursor.y);
-
     canvas.dispatchEvent(new Event("drawing-changed"));
   }
 });
@@ -70,9 +93,7 @@ canvas.addEventListener("mouseup", () => {
 
 function redraw() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
-  for (const cmd of lines) {
-    cmd.display(ctx);
-  }
+  for (const cmd of lines) cmd.display(ctx);
 }
 
 canvas.addEventListener("drawing-changed", () => {
