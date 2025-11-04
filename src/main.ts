@@ -250,3 +250,25 @@ clearButton.addEventListener("click", () => {
   redoLines.splice(0, redoLines.length);
   canvas.dispatchEvent(new Event("drawing-changed"));
 });
+
+const exportButton = document.createElement("button");
+exportButton.textContent = "Export (High-Res PNG)";
+document.body.append(exportButton);
+
+exportButton.addEventListener("click", () => {
+  const exportCanvas = document.createElement("canvas");
+  exportCanvas.width = 1024;
+  exportCanvas.height = 1024;
+  const exportCtx = exportCanvas.getContext("2d") as CanvasRenderingContext2D;
+
+  exportCtx.scale(4, 4);
+
+  for (const cmd of lines) {
+    cmd.display(exportCtx);
+  }
+
+  const link = document.createElement("a");
+  link.href = exportCanvas.toDataURL("image/png");
+  link.download = "sketchpad.png";
+  link.click();
+});
