@@ -66,7 +66,7 @@ class ToolPreview implements DisplayCommand {
       ctx.arc(this.x, this.y, this.size / 2, 0, Math.PI * 2);
       ctx.stroke();
     } else if (this.mode === "sticker" && this.sticker) {
-      ctx.font = `${this.size * 2}px sans-serif`;
+      ctx.font = `${this.size * 3}px sans-serif`;
       ctx.globalAlpha = 0.5;
       ctx.fillText(
         this.sticker ?? "",
@@ -145,7 +145,7 @@ for (const emoji of ["⭐", "🔥", "😊"]) {
 
 thinButton.addEventListener("click", () => {
   currentTool = "marker";
-  currentThickness = 1;
+  currentThickness = 2;
   thinButton.classList.add("selectedTool");
   thickButton.classList.remove("selectedTool");
   Object.values(stickerButtons).forEach((b) =>
@@ -155,7 +155,7 @@ thinButton.addEventListener("click", () => {
 
 thickButton.addEventListener("click", () => {
   currentTool = "marker";
-  currentThickness = 5;
+  currentThickness = 8;
   thickButton.classList.add("selectedTool");
   thinButton.classList.remove("selectedTool");
   Object.values(stickerButtons).forEach((b) =>
@@ -252,7 +252,7 @@ clearButton.addEventListener("click", () => {
 });
 
 const exportButton = document.createElement("button");
-exportButton.textContent = "Export (High-Res PNG)";
+exportButton.textContent = "Export (PNG)";
 document.body.append(exportButton);
 
 exportButton.addEventListener("click", () => {
