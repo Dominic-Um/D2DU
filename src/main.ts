@@ -123,7 +123,7 @@ const thickButton = document.createElement("button");
 thickButton.textContent = "Thick Marker";
 document.body.append(thickButton);
 
-let stickers = ["⭐", "🔥", "😊"];
+const stickers = ["⭐", "🔥", "😊"];
 
 const stickerButtons: { [key: string]: HTMLButtonElement } = {};
 
