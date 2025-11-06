@@ -14,10 +14,12 @@ interface DisplayCommand {
 class MarkerLine implements DisplayCommand {
   points: Point[];
   thickness: number;
+  color: string;
 
-  constructor(start: Point, thickness: number) {
+  constructor(start: Point, thickness: number, color: string) {
     this.points = [start];
     this.thickness = thickness;
+    this.color = color;
   }
 
   drag(x: number, y: number) {
@@ -28,7 +30,7 @@ class MarkerLine implements DisplayCommand {
     if (this.points.length < 2) return;
     ctx.beginPath();
     ctx.lineWidth = this.thickness;
-    ctx.strokeStyle = "black";
+    ctx.strokeStyle = this.color;
     const { x, y } = this.points[0];
     ctx.moveTo(x, y);
     for (const p of this.points) ctx.lineTo(p.x, p.y);
@@ -61,15 +63,17 @@ class ToolPreview implements DisplayCommand {
     ctx.save();
     if (this.mode === "marker") {
       ctx.beginPath();
-      ctx.lineWidth = 1;
-      ctx.strokeStyle = "rgba(0,0,0,0.5)";
       ctx.arc(this.x, this.y, this.size / 2, 0, Math.PI * 2);
+      ctx.fillStyle = currentColor;
+      ctx.globalAlpha = 0.5;
+      ctx.fill();
+      ctx.strokeStyle = "rgba(0,0,0,0.3)";
       ctx.stroke();
     } else if (this.mode === "sticker" && this.sticker) {
       ctx.font = `${this.size * 3}px sans-serif`;
       ctx.globalAlpha = 0.5;
       ctx.fillText(
-        this.sticker ?? "",
+        this.sticker,
         this.x - this.size / 2,
         this.y + this.size / 2,
       );
@@ -112,6 +116,7 @@ const cursor = { active: false, x: 0, y: 0 };
 let currentThickness = 1;
 let currentTool: "marker" | "sticker" = "marker";
 let currentSticker: string | null = null;
+let currentColor = "black";
 
 document.body.append(document.createElement("br"));
 
@@ -124,17 +129,11 @@ thickButton.textContent = "Thick Marker";
 document.body.append(thickButton);
 
 const stickers = ["⭐", "🔥", "😊"];
-
 const stickerButtons: { [key: string]: HTMLButtonElement } = {};
 
 function renderStickerButtons() {
-  for (const btn of Object.values(stickerButtons)) {
-    btn.remove();
-  }
-
-  for (const key of Object.keys(stickerButtons)) {
-    delete stickerButtons[key];
-  }
+  for (const btn of Object.values(stickerButtons)) btn.remove();
+  for (const key of Object.keys(stickerButtons)) delete stickerButtons[key];
 
   for (const emoji of stickers) {
     const btn = document.createElement("button");
@@ -173,21 +172,25 @@ addStickerButton.addEventListener("click", () => {
 thinButton.addEventListener("click", () => {
   currentTool = "marker";
   currentThickness = 2;
+  currentColor = `hsl(${Math.random() * 360}, 100%, 40%)`;
   thinButton.classList.add("selectedTool");
   thickButton.classList.remove("selectedTool");
   Object.values(stickerButtons).forEach((b) =>
     b.classList.remove("selectedTool")
   );
+  canvas.dispatchEvent(new Event("tool-moved"));
 });
 
 thickButton.addEventListener("click", () => {
   currentTool = "marker";
   currentThickness = 8;
+  currentColor = `hsl(${Math.random() * 360}, 100%, 40%)`;
   thickButton.classList.add("selectedTool");
   thinButton.classList.remove("selectedTool");
   Object.values(stickerButtons).forEach((b) =>
     b.classList.remove("selectedTool")
   );
+  canvas.dispatchEvent(new Event("tool-moved"));
 });
 
 canvas.addEventListener("mousedown", (e) => {
@@ -199,6 +202,7 @@ canvas.addEventListener("mousedown", (e) => {
     currentLine = new MarkerLine(
       { x: cursor.x, y: cursor.y },
       currentThickness,
+      currentColor,
     );
     lines.push(currentLine);
   } else if (currentTool === "sticker" && currentSticker) {
@@ -290,9 +294,7 @@ exportButton.addEventListener("click", () => {
 
   exportCtx.scale(4, 4);
 
-  for (const cmd of lines) {
-    cmd.display(exportCtx);
-  }
+  for (const cmd of lines) cmd.display(exportCtx);
 
   const link = document.createElement("a");
   link.href = exportCanvas.toDataURL("image/png");
