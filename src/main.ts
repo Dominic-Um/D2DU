@@ -123,25 +123,52 @@ const thickButton = document.createElement("button");
 thickButton.textContent = "Thick Marker";
 document.body.append(thickButton);
 
-const stickerButtons: { [key: string]: HTMLButtonElement } = {};
-for (const emoji of ["⭐", "🔥", "😊"]) {
-  const btn = document.createElement("button");
-  btn.textContent = emoji;
-  document.body.append(btn);
-  stickerButtons[emoji] = btn;
+let stickers = ["⭐", "🔥", "😊"];
 
-  btn.addEventListener("click", () => {
-    currentTool = "sticker";
-    currentSticker = emoji;
-    thinButton.classList.remove("selectedTool");
-    thickButton.classList.remove("selectedTool");
-    Object.values(stickerButtons).forEach((b) =>
-      b.classList.remove("selectedTool")
-    );
-    btn.classList.add("selectedTool");
-    canvas.dispatchEvent(new Event("tool-moved"));
-  });
+const stickerButtons: { [key: string]: HTMLButtonElement } = {};
+
+function renderStickerButtons() {
+  for (const btn of Object.values(stickerButtons)) {
+    btn.remove();
+  }
+
+  for (const key of Object.keys(stickerButtons)) {
+    delete stickerButtons[key];
+  }
+
+  for (const emoji of stickers) {
+    const btn = document.createElement("button");
+    btn.textContent = emoji;
+    document.body.append(btn);
+    stickerButtons[emoji] = btn;
+
+    btn.addEventListener("click", () => {
+      currentTool = "sticker";
+      currentSticker = emoji;
+      thinButton.classList.remove("selectedTool");
+      thickButton.classList.remove("selectedTool");
+      Object.values(stickerButtons).forEach((b) =>
+        b.classList.remove("selectedTool")
+      );
+      btn.classList.add("selectedTool");
+      canvas.dispatchEvent(new Event("tool-moved"));
+    });
+  }
 }
+
+renderStickerButtons();
+
+const addStickerButton = document.createElement("button");
+addStickerButton.textContent = "➕ Add Sticker";
+document.body.append(addStickerButton);
+
+addStickerButton.addEventListener("click", () => {
+  const text = prompt("Custom sticker text", "🧽");
+  if (text && text.trim() !== "") {
+    stickers.push(text.trim());
+    renderStickerButtons();
+  }
+});
 
 thinButton.addEventListener("click", () => {
   currentTool = "marker";
